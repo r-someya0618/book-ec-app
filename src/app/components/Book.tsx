@@ -2,24 +2,51 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { BookType } from '../types'
+import { BookType, User } from '../types'
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 type BookPropsType = {
   book: BookType
+  isPurchased: boolean
 }
 
 // eslint-disable-next-line react/display-name
-const Book = ({ book }: BookPropsType) => {
+const Book = ({ book, isPurchased }: BookPropsType) => {
   const [showModal, setShowModal] = useState(false)
   const { data: session } = useSession()
-  const user = session?.user
+  const user: User = session?.user as User
   const router = useRouter()
 
+  const startCheckout = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+          title: book.title,
+          price: book.price,
+          bookId: book.id,
+        }),
+      })
+
+      const responseData = await response.json()
+      if (responseData) {
+        router.push(responseData.checkout_url)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const handlePurchaseClick = () => {
-    setShowModal(true)
+    if (isPurchased) {
+      alert('すでに購入済みです。')
+    } else {
+      setShowModal(true)
+    }
   }
   const handleCancel = () => {
     setShowModal(false)
@@ -32,6 +59,7 @@ const Book = ({ book }: BookPropsType) => {
       router.push('/login')
     } else {
       // 決済
+      startCheckout()
     }
   }
 
