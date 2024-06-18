@@ -10,13 +10,14 @@ import { useRouter } from 'next/navigation'
 type BookPropsType = {
   book: BookType
   isPurchased: boolean
+  user: User
 }
 
 // eslint-disable-next-line react/display-name
-const Book = ({ book, isPurchased }: BookPropsType) => {
+const Book = ({ book, isPurchased, user }: BookPropsType) => {
   const [showModal, setShowModal] = useState(false)
-  const { data: session } = useSession()
-  const user: User = session?.user as User
+  // const { data: session } = useSession()
+  // const user: User = session?.user as User
   const router = useRouter()
 
   const startCheckout = async () => {
